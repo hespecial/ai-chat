@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>角色语聊 AI · 角色扮演与语音聊天</title>
+    <meta
+      name="description"
+      content="使用 AI 扮演哈利波特、苏格拉底等，与其进行语音与文字对话。内置前端演示与后端接口预留。"
+    />
+    <meta name="theme-color" content="#2f91ff" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&family=Poppins:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      ;(function () {
+        function show(msg) {
+          var el = document.getElementById('app')
+          var pre = document.createElement('pre')
+          pre.style.whiteSpace = 'pre-wrap'
+          pre.style.padding = '12px'
+          pre.style.background = '#fff7ed'
+          pre.style.border = '1px solid #fdba74'
+          pre.style.borderRadius = '8px'
+          pre.style.color = '#9a3412'
+          pre.textContent = msg
+          el && el.appendChild(pre)
+        }
+        window.addEventListener('error', function (e) {
+          show('Runtime Error: ' + ((e.error && e.error.stack) || e.message))
+        })
+        window.addEventListener('unhandledrejection', function (e) {
+          show('Unhandled Rejection: ' + ((e.reason && (e.reason.stack || e.reason)) || 'unknown'))
+        })
+      })()
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
