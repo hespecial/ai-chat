@@ -1,0 +1,46 @@
+syntax = "v1"
+
+info (
+	title:   "AI Chat"
+	desc:    "AI Chat api"
+	author:  "luxiao"
+	email:   "1478488313@qq.com"
+	version: "1.0.0"
+)
+
+type (
+	Character {
+		id          int64  `json:"id"`
+		name        string `json:"name"`
+		subtitle    string `json:"subtitle"`
+		description string `json:"description"`
+		tags        string `json:"tags"`
+		language    string `json:"language"`
+		greeting    string `json:"greeting"`
+	}
+	GetCharactersReq  {}
+	GetCharactersResp {
+		list []*Character `json:"list"`
+	}
+	GetCharacterByIdReq {
+		id int64 `path:"id,optional"`
+	}
+	GetCharacterByIdResp {
+		Character
+	}
+)
+
+@server (
+	group:  characters
+	prefix: api/v1
+)
+service AiChat {
+	@handler GetCharacters
+	get /characters (GetCharactersReq) returns (GetCharactersResp)
+
+	@handler GetCharacterById
+	get /character/:id (GetCharacterByIdReq) returns (GetCharacterByIdResp)
+}
+
+// backend/
+// goctl api go --dir . --api ./ai-chat.api

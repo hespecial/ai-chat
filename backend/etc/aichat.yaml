@@ -1,0 +1,9 @@
+Name: AiChat
+Host: 0.0.0.0
+Port: 8080
+
+Log:
+  Level: error
+
+DB:
+  DataSource: root:123456@tcp(127.0.0.1:3306)/ai_chat?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
