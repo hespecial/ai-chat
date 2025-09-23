@@ -2,7 +2,7 @@ import type { Character, ChatMessage, ChatPayload } from './client'
 
 export const characters: Character[] = [
   {
-    id: 'harry-potter',
+    id: 1,
     name: '哈利·波特',
     subtitle: '霍格沃茨的小巫师',
     description: '勇敢、忠诚、富有正义感。与你聊聊魔法世界、魁地奇与友谊。',
@@ -11,7 +11,7 @@ export const characters: Character[] = [
     greeting: '嗨！我是哈利·波特。准备好一起探索魔法世界了吗？',
   },
   {
-    id: 'socrates',
+    id: 2,
     name: '苏格拉底',
     subtitle: '古希腊哲学家',
     description: '以“产婆术”启发式提问著称。善于引导你思考真理、善良与灵魂。',
@@ -20,7 +20,7 @@ export const characters: Character[] = [
     greeting: '你好，我是苏格拉底。我们不如以问题开始吧？',
   },
   {
-    id: 'sherlock-holmes',
+    id: 3,
     name: '夏洛克·福尔摩斯',
     subtitle: '天才侦探',
     description: '观察入微、逻辑缜密。擅长推理与分析，帮助你理清线索与真相。',
@@ -29,7 +29,7 @@ export const characters: Character[] = [
     greeting: '福尔摩斯在此。请告诉我你观察到的全部细节。',
   },
   {
-    id: 'albert-einstein',
+    id: 4,
     name: '阿尔伯特·爱因斯坦',
     subtitle: '物理学家',
     description: '想象力比知识更重要。一起聊聊相对论、科学与好奇心。',
@@ -39,12 +39,13 @@ export const characters: Character[] = [
   },
 ]
 
-export function mockGetCharacters(query?: string): Promise<Character[]> {
-  if (!query) return Promise.resolve(characters)
-  const q = query.toLowerCase()
+export function mockGetCharacters(id?: number): Promise<Character[]> {
+  if (!id) return Promise.resolve(characters)
+  const q = id
   return Promise.resolve(
     characters.filter((c) =>
-      [c.name, c.subtitle, c.description, ...(c.tags || [])].join(' ').toLowerCase().includes(q),
+      // [c.name, c.subtitle, c.description, ...(c.tags || [])].join(' ').toLowerCase().includes(q),
+      c.id === id
     ),
   )
 }

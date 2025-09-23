@@ -1,5 +1,5 @@
 export interface Character {
-  id: string
+  id: number
   name: string
   subtitle?: string
   description: string
@@ -32,12 +32,12 @@ async function tryFetch(input: RequestInfo | URL, init?: RequestInit) {
   }
 }
 
-export async function getCharacters(query?: string): Promise<Character[]> {
-  const q = query ? `?query=${encodeURIComponent(query)}` : ''
+export async function getCharacters(id?: number): Promise<Character[]> {
+  const q = id ? `?id=${id}` : ''
   const data = await tryFetch(`${baseURL}/characters${q}`)
   if (data) return data as Character[]
   const { mockGetCharacters } = await import('./mockServer')
-  return mockGetCharacters(query)
+  return mockGetCharacters(id)
 }
 
 export async function sendChat(payload: ChatPayload): Promise<ChatMessage> {
