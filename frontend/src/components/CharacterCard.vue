@@ -18,7 +18,7 @@
         </p>
         <div class="mt-2 flex flex-wrap gap-2">
           <span
-            v-for="t in character.tags"
+            v-for="t in tags"
             :key="t"
             class="rounded-full border border-slate-200 bg-white/60 px-2 py-0.5 text-[11px] text-slate-500 dark:border-slate-700 dark:bg-slate-900/60"
             >#{{ t }}</span
@@ -39,9 +39,21 @@
 </template>
 
 <script setup lang="ts">
-import type { Character } from '@/api/client'
+import type { Character } from '@/api/types/character'
+import { computed } from 'vue'
 
 const props = defineProps<{ character: Character }>()
+const tags = computed(() => {
+  // 反序列化 character.tags
+  if (props.character.tags) {
+    try {
+      const tagArr: string[] = JSON.parse(props.character.tags)
+      return tagArr
+    } catch (error) {
+      console.error('解析 tags 失败:', error)
+    }
+  }
+})
 
 function initialsOf(name?: string) {
   if (!name) return 'AI'

@@ -1,3 +1,6 @@
+import api from './api'
+import { characters } from '@/api/mockServer.ts'
+
 export interface Character {
   id: number
   name: string
@@ -33,9 +36,15 @@ async function tryFetch(input: RequestInfo | URL, init?: RequestInit) {
 }
 
 export async function getCharacters(id?: number): Promise<Character[]> {
-  const q = id ? `?id=${id}` : ''
-  const data = await tryFetch(`${baseURL}/characters${q}`)
-  if (data) return data as Character[]
+  // let data: Character[] = []
+  // if (id){
+  //   const c = await api.getCharacterById(id)
+  //   data.push(c)
+  // }else{
+  //   data = await api.getCharacters()
+  // }
+  // return Promise.resolve(data)
+  // if (data.length>0) return data as Character[]
   const { mockGetCharacters } = await import('./mockServer')
   return mockGetCharacters(id)
 }

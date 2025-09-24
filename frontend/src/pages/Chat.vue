@@ -84,10 +84,12 @@ import Layout from '@/components/Layout/Layout.vue'
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getCharacters, sendChat, type Character, type ChatMessage } from '@/api/client'
+import type { GetCharacterByIdResponse } from '@/api/types/character'
+import api from '@/api/api'
 
 const route = useRoute()
 const id = String(route.params.id || '')
-const character = ref<Character | null>(null)
+const character = ref<GetCharacterByIdResponse | null>(null)
 const messages = ref<ChatMessage[]>([])
 const input = ref('')
 const loading = ref(false)
@@ -191,8 +193,7 @@ watch(
 )
 
 onMounted(async () => {
-  const list = await getCharacters()
-  character.value = list.find((c) => String(c.id) === id) || list[0]
+  character.value = await api.getCharacterById(Number(id))
   await loadHistory()
   initRecognition()
 })

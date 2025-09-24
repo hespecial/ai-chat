@@ -3,7 +3,7 @@
     <section class="relative">
       <div
         aria-hidden
-        class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-brand-500/20 blur-3xl"
+        class="pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-brand-500/20 blur-3xl"
       />
       <div
         aria-hidden
@@ -54,17 +54,18 @@ import Layout from '@/components/Layout/Layout.vue'
 import SearchBar from '@/components/SearchBar.vue'
 import CharacterCard from '@/components/CharacterCard.vue'
 import { onMounted, ref, computed } from 'vue'
-import { getCharacters, type Character } from '@/api/client'
+import type { GetCharactersResponse, Character } from '@/api/types/character'
+import api from '@/api/api'
 
 const query = ref('')
-const all = ref<Character[]>([])
+const all = ref<GetCharactersResponse>({ list: [] })
 const popularTags = ['魔法', '哲学', '历史', '文学', '科幻']
 
 const filtered = computed(() => {
-  if (!query.value) return all.value
+  if (!query.value) return all.value.list
   const q = query.value.toLowerCase()
-  return all.value.filter((c) =>
-    [c.name, c.subtitle, c.description, ...(c.tags || [])].join(' ').toLowerCase().includes(q),
+  return all.value.list.filter((c) =>
+    [c.name, c.subtitle, c.description, c.tags].join(' ').toLowerCase().includes(q),
   )
 })
 
@@ -81,6 +82,9 @@ function goChat(c: Character) {
 }
 
 onMounted(async () => {
-  all.value = await getCharacters()
+  all.value = await api.getCharacters()
+  // console.log(all.value.list)
+  // all.value = await getCharacters()
+  // console.log(all.value)
 })
 </script>
