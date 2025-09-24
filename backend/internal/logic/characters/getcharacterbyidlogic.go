@@ -1,8 +1,10 @@
 package characters
 
 import (
+	"backend/pkg/code"
 	"context"
 	"github.com/jinzhu/copier"
+	"github.com/pkg/errors"
 
 	"backend/internal/svc"
 	"backend/internal/types"
@@ -27,7 +29,7 @@ func NewGetCharacterByIdLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 func (l *GetCharacterByIdLogic) GetCharacterById(req *types.GetCharacterByIdReq) (resp *types.GetCharacterByIdResp, err error) {
 	character, err := l.svcCtx.CharactersModel.FindOne(l.ctx, req.Id)
 	if err != nil {
-		return
+		return nil, errors.Wrapf(code.NewInternalError("failed to get character by id"), "err: %v, req: %+v", err, req)
 	}
 
 	resp = &types.GetCharacterByIdResp{}

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-
 	"backend/internal/config"
 	"backend/internal/handler"
+	"backend/internal/middleware"
 	"backend/internal/svc"
+	"flag"
+	"fmt"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
@@ -22,6 +22,7 @@ func main() {
 
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
+	server.Use(middleware.Cors)
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)

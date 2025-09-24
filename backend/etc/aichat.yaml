@@ -4,6 +4,8 @@ Port: 8080
 
 Log:
   Level: error
+  Stat: false
+  Encoding: plain
 
 DB:
   DataSource: root:123456@tcp(127.0.0.1:3306)/ai_chat?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai

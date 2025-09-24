@@ -1,7 +1,9 @@
 package characters
 
 import (
+	"backend/pkg/code"
 	"context"
+	"github.com/pkg/errors"
 
 	"backend/internal/svc"
 	"backend/internal/types"
@@ -27,7 +29,7 @@ func NewGetCharactersLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 func (l *GetCharactersLogic) GetCharacters(_ *types.GetCharactersReq) (resp *types.GetCharactersResp, err error) {
 	characters, err := l.svcCtx.CharactersModel.List(l.ctx)
 	if err != nil {
-		return
+		return nil, errors.Wrapf(code.NewInternalError("failed to get characters list"), "err: %v", err)
 	}
 
 	resp = &types.GetCharactersResp{}
@@ -36,6 +38,5 @@ func (l *GetCharactersLogic) GetCharacters(_ *types.GetCharactersReq) (resp *typ
 		_ = copier.Copy(&c, character)
 		resp.List = append(resp.List, &c)
 	}
-
 	return
 }
