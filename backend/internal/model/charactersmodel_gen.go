@@ -36,13 +36,14 @@ type (
 	}
 
 	Characters struct {
-		Id          int64          `db:"id"`
-		Name        sql.NullString `db:"name"`        // 角色名称
-		Subtitle    sql.NullString `db:"subtitle"`    // 副标题
-		Description sql.NullString `db:"description"` // 角色描述
-		Tags        sql.NullString `db:"tags"`        // 角色标签
-		Language    sql.NullString `db:"language"`    // 角色使用的语言
-		Greeting    sql.NullString `db:"greeting"`    // 招呼语
+		Id          int64  `db:"id"`
+		Name        string `db:"name"`        // 角色名称
+		Subtitle    string `db:"subtitle"`    // 副标题
+		Description string `db:"description"` // 角色描述
+		Tags        string `db:"tags"`        // 角色标签
+		Language    string `db:"language"`    // 角色使用的语言
+		Greeting    string `db:"greeting"`    // 招呼语
+		Prompt      string `db:"prompt"`      // 人物形象提示词
 	}
 )
 
@@ -74,14 +75,14 @@ func (m *defaultCharactersModel) FindOne(ctx context.Context, id int64) (*Charac
 }
 
 func (m *defaultCharactersModel) Insert(ctx context.Context, data *Characters) (sql.Result, error) {
-	query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?)", m.table, charactersRowsExpectAutoSet)
-	ret, err := m.conn.ExecCtx(ctx, query, data.Name, data.Subtitle, data.Description, data.Tags, data.Language, data.Greeting)
+	query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?)", m.table, charactersRowsExpectAutoSet)
+	ret, err := m.conn.ExecCtx(ctx, query, data.Name, data.Subtitle, data.Description, data.Tags, data.Language, data.Greeting, data.Prompt)
 	return ret, err
 }
 
 func (m *defaultCharactersModel) Update(ctx context.Context, data *Characters) error {
 	query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, charactersRowsWithPlaceHolder)
-	_, err := m.conn.ExecCtx(ctx, query, data.Name, data.Subtitle, data.Description, data.Tags, data.Language, data.Greeting, data.Id)
+	_, err := m.conn.ExecCtx(ctx, query, data.Name, data.Subtitle, data.Description, data.Tags, data.Language, data.Greeting, data.Prompt, data.Id)
 	return err
 }
 

@@ -67,3 +67,7 @@ func NewInternalError(errMsg ...string) *Error {
 func NewIgnoredError(errMsg string) *Error {
 	return NewError(IgnoredError, errMsg)
 }
+
+func NewInvalidParamError() *Error {
+	return NewError(RequestParamError, ErrorMessage(RequestParamError))
+}

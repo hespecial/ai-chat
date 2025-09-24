@@ -13,6 +13,15 @@ type Character struct {
 	Greeting    string `json:"greeting"`
 }
 
+type CreateChatReq struct {
+	CharacterId int64  `json:"character_id"`
+	Content     string `json:"content"`
+}
+
+type CreateChatResp struct {
+	Content string `json:"content"`
+}
+
 type GetCharacterByIdReq struct {
 	Id int64 `path:"id,optional"`
 }

@@ -12,6 +12,6 @@ DB:
   DataSource: root:123456@tcp(127.0.0.1:3306)/ai_chat?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
 
 LLM:
-  Url: https://api.siliconflow.cn/v1/chat/completions # api接口url
-  ApiKey: sk-cqzjtrvsrnewqxjovstbitdfixmmxlncgpicgdiitxhrlskj
-  Model: tencent/Hunyuan-MT-7B # 使用的模型
+  Url: xxx # api接口url
+  ApiKey: xxx
+  Model: xxx # 使用的模型

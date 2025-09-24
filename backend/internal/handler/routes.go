@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	characters "backend/internal/handler/characters"
+	chat "backend/internal/handler/chat"
 	"backend/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -24,6 +25,17 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodGet,
 				Path:    "/characters",
 				Handler: characters.GetCharactersHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/api/v1"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/chat",
+				Handler: chat.CreateChatHandler(serverCtx),
 			},
 		},
 		rest.WithPrefix("/api/v1"),

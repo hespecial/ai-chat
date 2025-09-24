@@ -3,6 +3,7 @@ package svc
 import (
 	"backend/internal/config"
 	"backend/internal/model"
+	"backend/pkg/llm"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"log"
 )
@@ -10,6 +11,7 @@ import (
 type ServiceContext struct {
 	Config          config.Config
 	CharactersModel model.CharactersModel
+	LLM             *llm.LLM
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -24,5 +26,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
 		Config:          c,
 		CharactersModel: model.NewCharactersModel(conn),
+		LLM:             llm.NewLLM(c.LLM.Url, c.LLM.ApiKey, c.LLM.Model),
 	}
 }

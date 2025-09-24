@@ -28,6 +28,13 @@ type (
 	GetCharacterByIdResp {
 		Character
 	}
+	CreateChatReq {
+		characterId int64  `json:"character_id"`
+		content     string `json:"content"`
+	}
+	CreateChatResp {
+		content string `json:"content"`
+	}
 )
 
 @server (
@@ -40,6 +47,15 @@ service AiChat {
 
 	@handler GetCharacterById
 	get /character/:id (GetCharacterByIdReq) returns (GetCharacterByIdResp)
+}
+
+@server (
+	group:  chat
+	prefix: api/v1
+)
+service AiChat {
+	@handler CreateChat
+	post /chat (CreateChatReq) returns (CreateChatResp)
 }
 
 // backend/

@@ -7,4 +7,9 @@ type Config struct {
 	DB struct {
 		DataSource string
 	}
+	LLM struct {
+		Url    string
+		ApiKey string
+		Model  string
+	}
 }
