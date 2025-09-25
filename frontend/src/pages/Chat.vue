@@ -27,6 +27,15 @@
             <!--              recognizing ? '进行中' : '未开启'-->
             <!--            }}</span>-->
             <button
+              @click="enableVoice"
+              :class="[
+                'inline-flex h-10 items-center rounded-xl px-4 text-sm font-medium text-white',
+                hasVoice ? 'bg-green-400 hover:bg-green-500' : 'bg-gray-400 hover:bg-gray-500',
+              ]"
+            >
+              语音{{ hasVoice ? '已开启' : '已关闭' }}
+            </button>
+            <button
               class="inline-flex h-10 items-center rounded-xl bg-gray-400 px-4 text-sm font-medium text-white hover:bg-red-300"
               @click="truncateChat"
             >
@@ -63,6 +72,7 @@
             v-model="input"
             rows="1"
             placeholder="输入内容，或使用麦克风…"
+            @keydown="onKeydown"
             class="flex-1 resize-none rounded-xl border border-slate-300 bg-white/80 px-3 py-2 text-sm shadow-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200 dark:border-slate-700 dark:bg-slate-900/60"
           ></textarea>
           <button
@@ -99,6 +109,7 @@ const messages = ref<types.ChatMessage[]>([])
 const input = ref('')
 const loading = ref(false)
 const initials = ref('')
+const hasVoice = ref(true)
 
 // speech
 declare global {
@@ -134,6 +145,10 @@ function toggleVoice() {
   else recognition.start()
 }
 
+function enableVoice() {
+  hasVoice.value = !hasVoice.value
+}
+
 function speak(text: string) {
   try {
     const utter = new SpeechSynthesisUtterance(text)
@@ -154,6 +169,16 @@ function initialsOf(name?: string) {
     .toUpperCase()
 }
 
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault()
+    input.value += '\n'
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    send()
+  }
+}
+
 async function send() {
   const text = input.value.trim()
   if (!text) return
@@ -168,7 +193,9 @@ async function send() {
     content: reply.content,
     created: Math.floor(Date.now() / 1000),
   })
-  // speak(reply.content)
+  if (hasVoice.value) {
+    speak(reply.content)
+  }
 }
 
 function back() {
