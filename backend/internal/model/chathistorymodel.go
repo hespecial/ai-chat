@@ -16,6 +16,7 @@ type (
 		withSession(session sqlx.Session) ChatHistoryModel
 		SaveRoundChat(ctx context.Context, userRecord, assistantRecord *ChatHistory) error
 		List(ctx context.Context, characterId int64) ([]*ChatHistory, error)
+		TruncateChat(ctx context.Context, characterId int64) error
 	}
 
 	customChatHistoryModel struct {
@@ -51,4 +52,10 @@ func (m *customChatHistoryModel) List(ctx context.Context, characterId int64) ([
 	query := fmt.Sprintf("select %s from %s where `character_id` = ? order by `created` asc, id asc", chatHistoryRows, m.table)
 	var resp []*ChatHistory
 	return resp, m.conn.QueryRowsCtx(ctx, &resp, query, characterId)
+}
+
+func (m *customChatHistoryModel) TruncateChat(ctx context.Context, characterId int64) error {
+	query := fmt.Sprintf("delete from %s where `character_id` = ?", m.table)
+	_, err := m.conn.ExecCtx(ctx, query, characterId)
+	return err
 }

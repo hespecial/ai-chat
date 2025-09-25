@@ -46,6 +46,10 @@ type (
 	GetChatHistoryResp {
 		histories []*ChatHistory `json:"histories"`
 	}
+	TruncateChatHistoryReq {
+		id int64 `path:"id"`
+	}
+	TruncateChatHistoryResp  {}
 )
 
 @server (
@@ -70,6 +74,9 @@ service AiChat {
 
 	@handler GetChatHistory
 	get /chat/:id (GetChatHistoryReq) returns (GetChatHistoryResp)
+
+	@handler TruncateChatHistory
+	delete /chat/:id (TruncateChatHistoryReq) returns (TruncateChatHistoryResp)
 }
 
 // backend/

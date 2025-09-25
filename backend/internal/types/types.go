@@ -50,3 +50,10 @@ type GetChatHistoryReq struct {
 type GetChatHistoryResp struct {
 	Histories []*ChatHistory `json:"histories"`
 }
+
+type TruncateChatHistoryReq struct {
+	Id int64 `path:"id"`
+}
+
+type TruncateChatHistoryResp struct {
+}
