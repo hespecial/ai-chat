@@ -1,6 +1,7 @@
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  created: number
 }
 
 export interface CreateChatReq {
@@ -9,5 +10,9 @@ export interface CreateChatReq {
 }
 
 export interface CreateChatResponse {
-  content: string;
+  content: string
+}
+
+export interface GetChatHistoryResponse {
+  histories: ChatMessage[]
 }

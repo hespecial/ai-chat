@@ -22,10 +22,16 @@
             <div class="text-xs text-slate-500">{{ character?.subtitle }}</div>
           </div>
           <div class="ml-auto flex items-center gap-3 text-xs text-slate-500">
-            <span class="hidden sm:inline">语音识别：</span>
-            <span :class="recognizing ? 'text-brand-600' : ''">{{
-              recognizing ? '进行中' : '未开启'
-            }}</span>
+            <!--            <span class="hidden sm:inline">语音识别：</span>-->
+            <!--            <span :class="recognizing ? 'text-brand-600' : ''">{{-->
+            <!--              recognizing ? '进行中' : '未开启'-->
+            <!--            }}</span>-->
+            <button
+              class="inline-flex h-10 items-center rounded-xl bg-gray-400 px-4 text-sm font-medium text-white hover:bg-red-300"
+              @click="truncateChat"
+            >
+              清空
+            </button>
           </div>
         </div>
 
@@ -87,7 +93,7 @@ import * as types from '@/api/types'
 import api from '@/api/api'
 
 const route = useRoute()
-const id = String(route.params.id || '')
+const id = Number(route.params.id)
 const character = ref<types.Character | null>(null)
 const messages = ref<types.ChatMessage[]>([])
 const input = ref('')
@@ -148,43 +154,30 @@ function initialsOf(name?: string) {
     .toUpperCase()
 }
 
-function persist() {
-  if (!character.value) return
-  localStorage.setItem(`chat:${character.value.id}`, JSON.stringify(messages.value))
-}
-
-async function loadHistory() {
-  if (!character.value) return
-  const raw = localStorage.getItem(`chat:${character.value.id}`)
-  messages.value = raw
-    ? JSON.parse(raw)
-    : [
-        {
-          role: 'assistant',
-          content:
-            character.value.greeting || `你好，我是${character.value.name}，很高兴与你交流。`,
-        },
-      ]
-}
-
 async function send() {
   const text = input.value.trim()
   if (!text) return
   input.value = ''
-  messages.value.push({ role: 'user', content: text })
-  persist()
+  messages.value.push({ role: 'user', content: text, created: Math.floor(Date.now() / 1000) })
 
   loading.value = true
-  // const reply = await sendChat({ characterId: id, messages: messages.value })
-  const reply = await api.createChat({ characterId: Number(id), content: text })
+  const reply = await api.createChat({ characterId: id, content: text })
   loading.value = false
-  messages.value.push({role: 'assistant', content: reply.content})
-  persist()
+  messages.value.push({
+    role: 'assistant',
+    content: reply.content,
+    created: Math.floor(Date.now() / 1000),
+  })
   // speak(reply.content)
 }
 
 function back() {
   history.length > 1 ? history.back() : (window.location.href = '/')
+}
+
+async function truncateChat() {
+  messages.value.splice(1)
+  await api.truncateChat(id)
 }
 
 watch(
@@ -193,9 +186,17 @@ watch(
 )
 
 onMounted(async () => {
-  character.value = await api.getCharacterById(Number(id))
+  character.value = await api.getCharacterById(id)
+  messages.value.push({
+    role: 'assistant',
+    content: character.value.greeting
+      ? character.value.greeting
+      : `你好，我是${character.value.name}，很高兴与你交流。`,
+    created: 0,
+  })
+  const resp = await api.getChatHistory(id)
   initials.value = initialsOf(character.value?.name)
-  await loadHistory()
+  messages.value.push(...resp.histories)
   initRecognition()
 })
 
