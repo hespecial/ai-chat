@@ -23,17 +23,28 @@ type (
 		list []*Character `json:"list"`
 	}
 	GetCharacterByIdReq {
-		id int64 `path:"id,optional"`
+		id int64 `path:"id"`
 	}
 	GetCharacterByIdResp {
 		Character
 	}
 	CreateChatReq {
-		characterId int64  `json:"character_id"`
+		characterId int64  `json:"characterId"`
 		content     string `json:"content"`
 	}
 	CreateChatResp {
 		content string `json:"content"`
+	}
+	ChatHistory {
+		role    string `json:"role"`
+		content string `json:"content"`
+		created int64  `json:"created"`
+	}
+	GetChatHistoryReq {
+		id int64 `path:"id"`
+	}
+	GetChatHistoryResp {
+		histories []*ChatHistory `json:"histories"`
 	}
 )
 
@@ -56,6 +67,9 @@ service AiChat {
 service AiChat {
 	@handler CreateChat
 	post /chat (CreateChatReq) returns (CreateChatResp)
+
+	@handler GetChatHistory
+	get /chat/:id (GetChatHistoryReq) returns (GetChatHistoryResp)
 }
 
 // backend/

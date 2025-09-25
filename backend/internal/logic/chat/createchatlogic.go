@@ -1,11 +1,12 @@
 package chat
 
 import (
+	"backend/internal/model"
 	"backend/pkg/code"
 	"backend/pkg/prompt"
 	"context"
 	"github.com/pkg/errors"
-	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"time"
 
 	"backend/internal/svc"
 	"backend/internal/types"
@@ -29,7 +30,7 @@ func NewCreateChatLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 
 func (l *CreateChatLogic) CreateChat(req *types.CreateChatReq) (resp *types.CreateChatResp, err error) {
 	character, err := l.svcCtx.CharactersModel.FindOne(l.ctx, req.CharacterId)
-	if errors.Is(err, sqlx.ErrNotFound) {
+	if errors.Is(err, model.ErrNotFound) {
 		return nil, errors.Wrapf(code.NewInvalidParamError(), "req: %+v", req)
 	}
 	if err != nil {
@@ -41,8 +42,31 @@ func (l *CreateChatLogic) CreateChat(req *types.CreateChatReq) (resp *types.Crea
 		return nil, errors.Wrapf(code.NewInternalError("failed to create chat"), "call llm error: %v", err)
 	}
 
+	if len(response.Choices) == 0 {
+		return nil, errors.Wrapf(code.NewInternalError("failed to create chat"), "llm response message is empty")
+	}
+	content := response.Choices[0].Message.Content
+
+	go func(character *model.Characters, userContent, assistantContent string) {
+		assistantChatHistory := model.ChatHistory{
+			CharacterId: character.Id,
+			Role:        model.RoleAssistant,
+			Content:     assistantContent,
+			Created:     time.Now().Unix(),
+		}
+		userChatHistory := model.ChatHistory{
+			CharacterId: character.Id,
+			Role:        model.RoleUser,
+			Content:     userContent,
+			Created:     time.Now().Unix(),
+		}
+		if err = l.svcCtx.ChatHistoryModel.SaveRoundChat(context.Background(), &userChatHistory, &assistantChatHistory); err != nil {
+			l.Logger.Errorf("failed to insert chat history, err: %v", err)
+		}
+	}(character, req.Content, content)
+
 	resp = &types.CreateChatResp{
-		Content: response.Choices[0].Message.Content,
+		Content: content,
 	}
 	return
 }

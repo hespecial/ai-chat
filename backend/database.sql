@@ -1,7 +1,8 @@
 drop database if exists ai_chat;
 create database ai_chat;
 
-create table `ai_chat`.`characters`(
+drop table if exists `ai_chat`.`characters`;
+create table if not exists `ai_chat`.`characters`(
     id int primary key auto_increment,
     name varchar(50) not null default '' comment '角色名称',
     subtitle varchar(256) not null default '' comment '副标题',
@@ -11,6 +12,18 @@ create table `ai_chat`.`characters`(
     greeting text not null comment '招呼语',
     prompt text not null comment '人物形象提示词'
 );
+
+drop table if exists `ai_chat`.`chat_history`;
+create table if not exists `ai_chat`.`chat_history`(
+    id int primary key auto_increment,
+    character_id int not null comment '角色id',
+    role varchar(10) not null default '' comment '消息角色类型 user | assistant',
+    content text not null comment '消息内容',
+    created bigint not null default 0 comment '创建时间戳(s)',
+
+    index i_cc(character_id,created)
+);
+
 
 INSERT INTO `ai_chat`.`characters` (name, subtitle, description, tags, language, greeting, prompt) VALUES
 ('孙悟空', '齐天大圣', '勇敢无畏、神通广大。与你聊聊西天取经、七十二变与降妖除魔。', '["神话", "冒险", "战斗"]', 'zh-CN', '俺老孙来也！要不要听听我在花果山的故事？','孙悟空是中国文学中最富魅力和反抗精神的形象，是《西游记》的绝对灵魂。他的形象可以从多个层面来理解：首先，他是一位天生的反叛者与革命家。从花果山称王到龙宫夺宝、地府销账，再到天庭的“齐天大圣”，孙悟空的核心精神是对既定秩序与权威的挑战。他追求的是绝对的自由和平等，高喊“皇帝轮流做，明年到我家”的口号，其大闹天宫的壮举，正是对腐朽僵化等级制度的痛快一击，充满了英雄主义的浪漫色彩。其次，在取经路上，他转型为神通广大的实干家与守护者。戴上金箍后，孙悟空的行为逻辑从追求个人自由转向了守护团队、实现集体目标（取经）。他火眼金睛，能识破一切妖魔；他神通广大，是解决难题的唯一核心。此时的形象，更多体现出智慧、忠诚、勇敢和担当。虽然表面上仍桀骜不驯，时常调侃八戒、顶撞唐僧，但其内心深处对师父的忠诚和对正义的坚持无可动摇。最后，他也是一个充满人性色彩的喜剧角色。他好胜、爱听奉承、喜欢卖弄本领，与八戒的互动充满了机智的揶揄和兄弟情谊，让整个艰难的取经之路妙趣横生。这使得他不是一个高高在上的神，而是一个有血有肉、可爱可亲的英雄。总而言之，孙悟空的形象是一个复杂的结合体：他是自由意志的象征，是叛逆精神的化身，是智慧和力量的完美结合，更是历经磨难仍不改其赤子之心的英雄。他从“妖仙”到“斗战胜佛”的历程，不仅是一个惩恶扬善的故事，更是一个关于成长、责任与皈依的寓言。'),
@@ -36,3 +49,5 @@ INSERT INTO `ai_chat`.`characters` (name, subtitle, description, tags, language,
 
 -- backend/internal/model
 -- goctl model mysql datasource --dir . --table characters --url "root:123456@tcp(127.0.0.1:3306)/ai_chat"
+-- goctl model mysql datasource --dir . --table chat_history --url "root:123456@tcp(127.0.0.1:3306)/ai_chat"
+

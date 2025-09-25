@@ -3,7 +3,6 @@ package main
 import (
 	"backend/internal/config"
 	"backend/internal/handler"
-	"backend/internal/middleware"
 	"backend/internal/svc"
 	"flag"
 	"fmt"
@@ -20,9 +19,8 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
-	server := rest.MustNewServer(c.RestConf)
+	server := rest.MustNewServer(c.RestConf, rest.WithCors())
 	defer server.Stop()
-	server.Use(middleware.Cors)
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)

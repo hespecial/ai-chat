@@ -68,39 +68,29 @@ func (llm *LLM) Call(content string) (*ChatCompletionResponse, error) {
 }
 
 type ChatCompletionResponse struct {
-	ID      string    `json:"id"`
-	Choices []*Choice `json:"choices"`
-	Usage   Usage     `json:"usage"`
-	Created int64     `json:"created"`
-	Model   string    `json:"model"`
-	Object  string    `json:"object"`
-}
-
-type Choice struct {
-	Message      ResponseMessage `json:"message"`
-	FinishReason string          `json:"finish_reason"`
-}
-
-type ResponseMessage struct {
-	Role             string      `json:"role"`
-	Content          string      `json:"content"`
-	ReasoningContent string      `json:"reasoning_content"`
-	ToolCalls        []*ToolCall `json:"tool_calls"`
-}
-
-type ToolCall struct {
-	ID       string   `json:"id"`
-	Type     string   `json:"type"`
-	Function Function `json:"function"`
-}
-
-type Function struct {
-	Name      string `json:"name"`
-	Arguments string `json:"arguments"`
-}
-
-type Usage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens"`
+	ID      string `json:"id"`
+	Choices []struct {
+		Message struct {
+			Role             string `json:"role"`
+			Content          string `json:"content"`
+			ReasoningContent string `json:"reasoning_content"`
+			ToolCalls        []struct {
+				ID       string `json:"id"`
+				Type     string `json:"type"`
+				Function struct {
+					Name      string `json:"name"`
+					Arguments string `json:"arguments"`
+				} `json:"function"`
+			} `json:"tool_calls"`
+		} `json:"message"`
+		FinishReason string `json:"finish_reason"`
+	} `json:"choices"`
+	Usage struct {
+		PromptTokens     int `json:"prompt_tokens"`
+		CompletionTokens int `json:"completion_tokens"`
+		TotalTokens      int `json:"total_tokens"`
+	} `json:"usage"`
+	Created int64  `json:"created"`
+	Model   string `json:"model"`
+	Object  string `json:"object"`
 }

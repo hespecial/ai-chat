@@ -9,9 +9,10 @@ import (
 )
 
 type ServiceContext struct {
-	Config          config.Config
-	CharactersModel model.CharactersModel
-	LLM             *llm.LLM
+	Config           config.Config
+	CharactersModel  model.CharactersModel
+	ChatHistoryModel model.ChatHistoryModel
+	LLM              *llm.LLM
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -24,8 +25,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		log.Fatalf("connect database err: %v", err)
 	}
 	return &ServiceContext{
-		Config:          c,
-		CharactersModel: model.NewCharactersModel(conn),
-		LLM:             llm.NewLLM(c.LLM.Url, c.LLM.ApiKey, c.LLM.Model),
+		Config:           c,
+		CharactersModel:  model.NewCharactersModel(conn),
+		ChatHistoryModel: model.NewChatHistoryModel(conn),
+		LLM:              llm.NewLLM(c.LLM.Url, c.LLM.ApiKey, c.LLM.Model),
 	}
 }

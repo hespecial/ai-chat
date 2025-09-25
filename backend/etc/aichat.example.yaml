@@ -2,7 +2,7 @@ Name: AiChat
 Host: 0.0.0.0
 Port: 8080
 
-Timeout: 30000 # http 超时时间，llm容易超时，尽量设置大一些
+Timeout: 30000 # http 超时时间，llm 容易超时，尽量设置大一些
 
 Log:
   Level: error
