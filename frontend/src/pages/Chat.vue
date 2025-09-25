@@ -81,18 +81,18 @@
 
 <script setup lang="ts">
 import Layout from '@/components/Layout/Layout.vue'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { getCharacters, sendChat, type Character, type ChatMessage } from '@/api/client'
-import type { GetCharacterByIdResponse } from '@/api/types/character'
+import * as types from '@/api/types'
 import api from '@/api/api'
 
 const route = useRoute()
 const id = String(route.params.id || '')
-const character = ref<GetCharacterByIdResponse | null>(null)
-const messages = ref<ChatMessage[]>([])
+const character = ref<types.Character | null>(null)
+const messages = ref<types.ChatMessage[]>([])
 const input = ref('')
 const loading = ref(false)
+const initials = ref('')
 
 // speech
 declare global {
@@ -147,7 +147,6 @@ function initialsOf(name?: string) {
     .join('')
     .toUpperCase()
 }
-const initials = initialsOf(character.value?.name)
 
 function persist() {
   if (!character.value) return
@@ -176,11 +175,12 @@ async function send() {
   persist()
 
   loading.value = true
-  const reply = await sendChat({ characterId: id, messages: messages.value })
+  // const reply = await sendChat({ characterId: id, messages: messages.value })
+  const reply = await api.createChat({ characterId: Number(id), content: text })
   loading.value = false
-  messages.value.push(reply)
+  messages.value.push({role: 'assistant', content: reply.content})
   persist()
-  speak(reply.content)
+  // speak(reply.content)
 }
 
 function back() {
@@ -194,6 +194,7 @@ watch(
 
 onMounted(async () => {
   character.value = await api.getCharacterById(Number(id))
+  initials.value = initialsOf(character.value?.name)
   await loadHistory()
   initRecognition()
 })
