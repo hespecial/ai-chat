@@ -5,6 +5,7 @@ import (
 	"backend/pkg/code"
 	"backend/pkg/prompt"
 	"context"
+	"encoding/json"
 	"github.com/pkg/errors"
 	"time"
 
@@ -39,7 +40,20 @@ func (l *CreateChatLogic) CreateChat(req *types.CreateChatReq) (resp *types.Crea
 		return nil, errors.Wrapf(internalError, "get character by id error: %v", err)
 	}
 
-	response, err := l.svcCtx.LLM.CreateChat(prompt.Combine(character.Prompt, req.Content))
+	// 查询该角色的历史对话消息
+	histories, err := l.svcCtx.ChatHistoryModel.List(l.ctx, character.Id)
+	if err != nil {
+		return nil, errors.Wrapf(internalError, "list history by characterId error: %v", err)
+	}
+
+	// 对历史消息进行分组、拼接
+	historiesStr, err := l.historyGroupSplice(histories)
+	if err != nil {
+		return nil, errors.Wrapf(internalError, "history group error: %v", err)
+	}
+
+	// 进行完全上下文召回
+	response, err := l.svcCtx.LLM.CreateChat(prompt.Combine(character.Prompt, historiesStr, req.Content))
 	if err != nil {
 		return nil, errors.Wrapf(internalError, "call llm error: %v", err)
 	}
@@ -63,17 +77,47 @@ func (l *CreateChatLogic) CreateChat(req *types.CreateChatReq) (resp *types.Crea
 }
 
 func (l *CreateChatLogic) saveRoundChat(character *model.Characters, userContent, assistantContent string) (int64, error) {
+	now := time.Now().Unix()
 	assistantChatHistory := model.ChatHistory{
 		CharacterId: character.Id,
 		Role:        model.RoleAssistant,
 		Content:     assistantContent,
-		Created:     time.Now().Unix(),
+		Created:     now,
 	}
 	userChatHistory := model.ChatHistory{
 		CharacterId: character.Id,
 		Role:        model.RoleUser,
 		Content:     userContent,
-		Created:     time.Now().Unix(),
+		Created:     now,
 	}
 	return l.svcCtx.ChatHistoryModel.SaveRoundChat(context.Background(), &userChatHistory, &assistantChatHistory)
+}
+
+type message struct {
+	Round   int    `json:"round"`
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+func (l *CreateChatLogic) historyGroupSplice(histories []*model.ChatHistory) (string, error) {
+	if len(histories) == 0 {
+		return "", nil
+	}
+	groupMap := make(map[int][]*message)
+	for i, history := range histories {
+		round := i/2 + 1
+		if (history.Role == model.RoleUser && len(groupMap[round]) > 0) || (history.Role == model.RoleAssistant && len(groupMap[round]) == 0) {
+			continue
+		}
+		groupMap[round] = append(groupMap[round], &message{
+			Round:   round,
+			Role:    history.Role,
+			Content: history.Content,
+		})
+	}
+	historiesStr, err := json.Marshal(groupMap)
+	if err != nil {
+		return "", err
+	}
+	return string(historiesStr), nil
 }

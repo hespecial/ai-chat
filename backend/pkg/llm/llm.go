@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	roleUser   = "user"
-	chatApi    = "/v1/chat/completions"
-	chatModel  = "tencent/Hunyuan-MT-7B"
+	roleUser = "user"
+	chatApi  = "/v1/chat/completions"
+	// deepseek-ai/DeepSeek-V3.1表现较好
+	chatModel  = "deepseek-ai/DeepSeek-V3.1"
 	voiceApi   = "/v1/audio/speech"
 	voiceModel = "fnlp/MOSS-TTSD-v0.5"
 )
