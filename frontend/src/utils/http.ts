@@ -2,6 +2,7 @@ import axios, {
   type AxiosInstance,
   type AxiosRequestConfig,
   type AxiosResponse,
+  type ResponseType,
 } from 'axios';
 
 // 定义接口返回的数据结构
@@ -74,6 +75,32 @@ class HttpClient {
   // 封装 DELETE 请求
   public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.instance.delete(url, config);
+  }
+
+  // 封装获取二进制数据的请求（不经过响应拦截器）
+  public async getBinary(url: string, config?: AxiosRequestConfig): Promise<ArrayBuffer> {
+    try {
+      // 完整URL
+      const fullUrl = `${baseURL}${url}`;
+
+      const binaryConfig: AxiosRequestConfig = {
+        ...config,
+        responseType: 'arraybuffer' as ResponseType,
+        headers: {
+          ...config?.headers,
+        },
+      };
+
+      // 创建新的axios实例，没有任何拦截器
+      const binaryInstance = axios.create();
+
+      // 直接使用新实例发起请求，完全绕过拦截器
+      const response = await binaryInstance.get(fullUrl, binaryConfig);
+      return response.data;
+    } catch (error) {
+      console.error('获取二进制数据失败:', error);
+      throw error;
+    }
   }
 }
 

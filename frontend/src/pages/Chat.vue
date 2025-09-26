@@ -63,6 +63,21 @@
             >
               <p v-html="format(m.content)"></p>
             </div>
+            <!-- 停止播放按钮，只在最后一条消息且消息数量大于1时显示 -->
+            <button
+              v-if="
+                stopButtonVisibility &&
+                i === messages.length - 1 &&
+                messages.length > 1 &&
+                m.role !== 'user' &&
+                hasVoice
+              "
+              class="ml-2 mt-auto h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600"
+              @click="stopAudioPlay"
+            >
+              <!-- ⏸ -->
+              ⏹
+            </button>
           </div>
           <div v-if="loading" class="text-xs text-slate-500">对方正在思考中…</div>
         </div>
@@ -110,6 +125,9 @@ const input = ref('')
 const loading = ref(false)
 const initials = ref('')
 const hasVoice = ref(true)
+const stopButtonVisibility = ref(false)
+// 音频对象引用
+let currentAudio: HTMLAudioElement | null = null
 
 // speech
 declare global {
@@ -183,23 +201,77 @@ async function send() {
   const text = input.value.trim()
   if (!text) return
   input.value = ''
-  messages.value.push({ role: 'user', content: text, created: Math.floor(Date.now() / 1000) })
+  messages.value.push({
+    id: 0,
+    role: 'user',
+    content: text,
+    created: Math.floor(Date.now() / 1000),
+  })
 
   loading.value = true
   const reply = await api.createChat({ characterId: id, content: text })
-  loading.value = false
+  if (hasVoice.value) {
+    try {
+      const audioData = await api.getVoiceWave(reply.id)
+
+      // 停止当前正在播放的音频
+      if (currentAudio) {
+        stopAudioPlay()
+      }
+
+      // 创建Blob对象并播放
+      const blob = new Blob([audioData], { type: 'audio/mpeg' })
+      const audioUrl = URL.createObjectURL(blob)
+
+      currentAudio = new Audio(audioUrl)
+      await currentAudio.play()
+
+      // 音频播放结束后清理资源
+      currentAudio.onended = () => {
+        stopButtonVisibility.value = false
+        cleanupAudio()
+      }
+    } catch (error) {
+      console.error('播放音频失败:', error)
+    }
+  }
+
   messages.value.push({
+    id: reply.id,
     role: 'assistant',
     content: reply.content,
     created: Math.floor(Date.now() / 1000),
   })
-  if (hasVoice.value) {
-    speak(reply.content)
-  }
+
+  loading.value = false
+  stopButtonVisibility.value = true
+  // if (hasVoice.value) {
+  //   speak(reply.content)
+  // }
 }
 
 function back() {
   history.length > 1 ? history.back() : (window.location.href = '/')
+}
+
+function stopAudioPlay() {
+  stopButtonVisibility.value = false
+  // 停止音频播放并清理资源
+  if (currentAudio) {
+    currentAudio.pause()
+    cleanupAudio()
+  }
+}
+
+// 清理音频资源
+function cleanupAudio() {
+  if (currentAudio) {
+    if (currentAudio.src) {
+      URL.revokeObjectURL(currentAudio.src)
+    }
+    currentAudio.onended = null
+    currentAudio = null
+  }
 }
 
 async function truncateChat() {
@@ -215,6 +287,7 @@ watch(
 onMounted(async () => {
   character.value = await api.getCharacterById(id)
   messages.value.push({
+    id: 0,
     role: 'assistant',
     content: character.value.greeting
       ? character.value.greeting

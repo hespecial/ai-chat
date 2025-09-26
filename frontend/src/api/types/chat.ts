@@ -1,4 +1,5 @@
 export interface ChatMessage {
+  id: number
   role: 'user' | 'assistant'
   content: string
   created: number
@@ -10,6 +11,7 @@ export interface CreateChatReq {
 }
 
 export interface CreateChatResponse {
+  id: number
   content: string
 }
 
