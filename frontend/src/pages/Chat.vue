@@ -164,6 +164,7 @@ function toggleVoice() {
 }
 
 function enableVoice() {
+  stopButtonVisibility.value = false
   hasVoice.value = !hasVoice.value
 }
 

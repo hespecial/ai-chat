@@ -59,7 +59,7 @@ import api from '@/api/api'
 
 const query = ref('')
 const all = ref<GetCharactersResponse>({ list: [] })
-const popularTags = ['魔法', '哲学', '历史', '文学', '科幻']
+const popularTags = ['谋略', '科学', '历史', '文学', '女性']
 
 const filtered = computed(() => {
   if (!query.value) return all.value.list
