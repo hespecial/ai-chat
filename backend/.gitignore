@@ -2,3 +2,4 @@ data/*
 !.gitkeep
 .idea
 etc/aichat.yaml
+*_test.go

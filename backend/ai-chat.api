@@ -33,9 +33,11 @@ type (
 		content     string `json:"content"`
 	}
 	CreateChatResp {
+		id      int64  `json:"id"`
 		content string `json:"content"`
 	}
 	ChatHistory {
+		id      int64  `json:"id"`
 		role    string `json:"role"`
 		content string `json:"content"`
 		created int64  `json:"created"`
@@ -50,6 +52,9 @@ type (
 		id int64 `path:"id"`
 	}
 	TruncateChatHistoryResp  {}
+	GetVoiceWaveReq {
+		chatHistoryId int64 `form:"chatHistoryId"`
+	}
 )
 
 @server (
@@ -77,6 +82,9 @@ service AiChat {
 
 	@handler TruncateChatHistory
 	delete /chat/:id (TruncateChatHistoryReq) returns (TruncateChatHistoryResp)
+
+	@handler GetVoiceWave
+	get /chat/voice (GetVoiceWaveReq)
 }
 
 // backend/

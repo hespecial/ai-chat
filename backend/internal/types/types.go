@@ -14,6 +14,7 @@ type Character struct {
 }
 
 type ChatHistory struct {
+	Id      int64  `json:"id"`
 	Role    string `json:"role"`
 	Content string `json:"content"`
 	Created int64  `json:"created"`
@@ -25,6 +26,7 @@ type CreateChatReq struct {
 }
 
 type CreateChatResp struct {
+	Id      int64  `json:"id"`
 	Content string `json:"content"`
 }
 
@@ -49,6 +51,10 @@ type GetChatHistoryReq struct {
 
 type GetChatHistoryResp struct {
 	Histories []*ChatHistory `json:"histories"`
+}
+
+type GetVoiceWaveReq struct {
+	ChatHistoryId int64 `form:"chatHistoryId"`
 }
 
 type TruncateChatHistoryReq struct {

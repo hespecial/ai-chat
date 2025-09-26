@@ -14,7 +14,7 @@ type (
 	ChatHistoryModel interface {
 		chatHistoryModel
 		withSession(session sqlx.Session) ChatHistoryModel
-		SaveRoundChat(ctx context.Context, userRecord, assistantRecord *ChatHistory) error
+		SaveRoundChat(ctx context.Context, userRecord, assistantRecord *ChatHistory) (int64, error)
 		List(ctx context.Context, characterId int64) ([]*ChatHistory, error)
 		TruncateChat(ctx context.Context, characterId int64) error
 	}
@@ -35,17 +35,27 @@ func (m *customChatHistoryModel) withSession(session sqlx.Session) ChatHistoryMo
 	return NewChatHistoryModel(sqlx.NewSqlConnFromSession(session))
 }
 
-func (m *customChatHistoryModel) SaveRoundChat(ctx context.Context, userRecord, assistantRecord *ChatHistory) error {
-	return m.conn.Transact(func(session sqlx.Session) error {
+func (m *customChatHistoryModel) SaveRoundChat(ctx context.Context, userRecord, assistantRecord *ChatHistory) (int64, error) {
+	var historyId int64
+	err := m.conn.Transact(func(session sqlx.Session) error {
 		tx := m.withSession(session)
 		if _, err := tx.Insert(ctx, userRecord); err != nil {
 			return err
 		}
-		if _, err := tx.Insert(ctx, assistantRecord); err != nil {
+		result, err := tx.Insert(ctx, assistantRecord)
+		if err != nil {
+			return err
+		}
+
+		if historyId, err = result.LastInsertId(); err != nil {
 			return err
 		}
 		return nil
 	})
+	if err != nil {
+		return 0, nil
+	}
+	return historyId, nil
 }
 
 func (m *customChatHistoryModel) List(ctx context.Context, characterId int64) ([]*ChatHistory, error) {

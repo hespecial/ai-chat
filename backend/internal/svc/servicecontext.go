@@ -12,6 +12,7 @@ type ServiceContext struct {
 	Config           config.Config
 	CharactersModel  model.CharactersModel
 	ChatHistoryModel model.ChatHistoryModel
+	VoiceModel       model.VoiceModel
 	LLM              *llm.LLM
 }
 
@@ -28,6 +29,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:           c,
 		CharactersModel:  model.NewCharactersModel(conn),
 		ChatHistoryModel: model.NewChatHistoryModel(conn),
-		LLM:              llm.NewLLM(c.LLM.Url, c.LLM.ApiKey, c.LLM.Model),
+		VoiceModel:       model.NewVoiceModel(conn),
+		LLM:              llm.NewLLM(c.LLM.BaseUrl, c.LLM.ApiKey),
 	}
 }

@@ -29,44 +29,51 @@ func NewCreateChatLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 }
 
 func (l *CreateChatLogic) CreateChat(req *types.CreateChatReq) (resp *types.CreateChatResp, err error) {
+	internalError := code.NewInternalError("failed to create chat")
+
 	character, err := l.svcCtx.CharactersModel.FindOne(l.ctx, req.CharacterId)
 	if errors.Is(err, model.ErrNotFound) {
 		return nil, errors.Wrapf(code.NewInvalidParamError(), "req: %+v", req)
 	}
 	if err != nil {
-		return nil, errors.Wrapf(code.NewInternalError("failed to create chat"), "get character by id error: %v", err)
+		return nil, errors.Wrapf(internalError, "get character by id error: %v", err)
 	}
 
-	response, err := l.svcCtx.LLM.Call(prompt.Combine(character.Prompt, req.Content))
+	response, err := l.svcCtx.LLM.CreateChat(prompt.Combine(character.Prompt, req.Content))
 	if err != nil {
-		return nil, errors.Wrapf(code.NewInternalError("failed to create chat"), "call llm error: %v", err)
+		return nil, errors.Wrapf(internalError, "call llm error: %v", err)
 	}
 
 	if len(response.Choices) == 0 {
-		return nil, errors.Wrapf(code.NewInternalError("failed to create chat"), "llm response message is empty")
+		return nil, errors.Wrapf(internalError, "llm response message is empty")
 	}
 	content := response.Choices[0].Message.Content
 
-	go func(character *model.Characters, userContent, assistantContent string) {
-		assistantChatHistory := model.ChatHistory{
-			CharacterId: character.Id,
-			Role:        model.RoleAssistant,
-			Content:     assistantContent,
-			Created:     time.Now().Unix(),
-		}
-		userChatHistory := model.ChatHistory{
-			CharacterId: character.Id,
-			Role:        model.RoleUser,
-			Content:     userContent,
-			Created:     time.Now().Unix(),
-		}
-		if err = l.svcCtx.ChatHistoryModel.SaveRoundChat(context.Background(), &userChatHistory, &assistantChatHistory); err != nil {
-			l.Logger.Errorf("failed to insert chat history, err: %v", err)
-		}
-	}(character, req.Content, content)
+	// 保存此轮对话记录
+	historyId, err := l.saveRoundChat(character, req.Content, content)
+	if err != nil {
+		return nil, errors.Wrapf(internalError, "save round chat error: %v", err)
+	}
 
 	resp = &types.CreateChatResp{
+		Id:      historyId,
 		Content: content,
 	}
 	return
+}
+
+func (l *CreateChatLogic) saveRoundChat(character *model.Characters, userContent, assistantContent string) (int64, error) {
+	assistantChatHistory := model.ChatHistory{
+		CharacterId: character.Id,
+		Role:        model.RoleAssistant,
+		Content:     assistantContent,
+		Created:     time.Now().Unix(),
+	}
+	userChatHistory := model.ChatHistory{
+		CharacterId: character.Id,
+		Role:        model.RoleUser,
+		Content:     userContent,
+		Created:     time.Now().Unix(),
+	}
+	return l.svcCtx.ChatHistoryModel.SaveRoundChat(context.Background(), &userChatHistory, &assistantChatHistory)
 }

@@ -47,6 +47,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/chat/:id",
 				Handler: chat.TruncateChatHistoryHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/chat/voice",
+				Handler: chat.GetVoiceWaveHandler(serverCtx),
+			},
 		},
 		rest.WithPrefix("/api/v1"),
 	)
