@@ -2,28 +2,38 @@ package llm
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"github.com/gorilla/websocket"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
 const (
-	roleUser = "user"
-	chatApi  = "/v1/chat/completions"
-	// deepseek-ai/DeepSeek-V3.1表现较好
-	chatModel  = "deepseek-ai/DeepSeek-V3.1"
-	voiceApi   = "/v1/audio/speech"
-	voiceModel = "fnlp/MOSS-TTSD-v0.5"
+	roleUser  = "user"
+	chatApi   = "/v1/chat/completions"
+	chatModel = "deepseek-v3"
+	//voiceApi   = "/v1/audio/speech"
+	//voiceModel = "fnlp/MOSS-TTSD-v0.5"
+
+	voiceApi = "/v1/voice/tts"
 )
 
 type LLM struct {
 	BaseUrl string
 	ApiKey  string
+	wssUrl  url.URL
 }
 
-func NewLLM(url string, apiKey string) *LLM {
-	return &LLM{BaseUrl: url, ApiKey: apiKey}
+func NewLLM(baseUrl string, apiKey string) *LLM {
+	return &LLM{
+		BaseUrl: baseUrl,
+		ApiKey:  apiKey,
+		wssUrl:  url.URL{Scheme: "wss", Host: baseUrl[len("https://"):], Path: voiceApi},
+	}
 }
 
 type ChatPayload struct {
@@ -97,56 +107,95 @@ func (llm *LLM) CreateChat(content string) (*ChatCompletionResponse, error) {
 	return &result, nil
 }
 
-type VoicePayload struct {
-	MaxTokens      int     `json:"max_tokens"`
-	ResponseFormat string  `json:"response_format"`
-	SampleRate     int     `json:"sample_rate"`
-	Stream         bool    `json:"stream"`
-	Speed          float64 `json:"speed"`
-	Gain           int     `json:"gain"`
-	Model          string  `json:"model"`
-	Input          string  `json:"input"`
-	Voice          string  `json:"voice"`
+type TtsPayload struct {
+	Audio   *Audio   `json:"audio"`
+	Request *Request `json:"request"`
+}
+type Audio struct {
+	VoiceType  string  `json:"voice_type"`
+	Encoding   string  `json:"encoding"`
+	SpeedRatio float64 `json:"speed_ratio"`
+}
+type Request struct {
+	Text string `json:"text"`
+}
+type RelayTTSResponse struct {
+	Reqid     string `json:"reqid"`
+	Operation string `json:"operation"`
+	Sequence  int    `json:"sequence"`
+	Data      string `json:"data"`
+	Addition  struct {
+		Duration string `json:"duration"`
+	} `json:"addition"`
 }
 
-func newDefaultVoicePayload(input string, voice string) *VoicePayload {
-	return &VoicePayload{
-		MaxTokens:      2048,
-		ResponseFormat: "mp3",
-		SampleRate:     32000,
-		Stream:         true,
-		Speed:          1,
-		Gain:           0,
-		Model:          voiceModel,
-		Input:          input,
-		Voice:          voice,
+func newDefaultTtsPayload(input string, voice string) *TtsPayload {
+	return &TtsPayload{
+		Audio: &Audio{
+			VoiceType:  voice,
+			Encoding:   "mp3",
+			SpeedRatio: 1.0,
+		},
+		Request: &Request{
+			Text: input,
+		},
 	}
 }
 
 func (llm *LLM) TransferTextToVoice(text string, voice string) ([]byte, error) {
-	request, err := http.NewRequest(http.MethodPost, llm.BaseUrl+voiceApi, nil)
-	if err != nil {
-		return nil, err
-	}
-	auth := strings.Join([]string{"Bearer", llm.ApiKey}, " ")
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Authorization", auth)
+	return llm.wssStreamToBytes(text, voice)
+}
 
-	body, err := json.Marshal(newDefaultVoicePayload(text, voice))
-	if err != nil {
-		return nil, err
-	}
-	request.Body = io.NopCloser(bytes.NewBuffer(body))
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+func (llm *LLM) wssStreamToBytes(text, voice string) ([]byte, error) {
+	payload := newDefaultTtsPayload(text, voice)
 
-	bin, err := io.ReadAll(resp.Body)
+	input, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	return bin, nil
+	var header = http.Header{
+		"Authorization": []string{fmt.Sprintf("Bearer %s", llm.ApiKey)},
+		"VoiceType":     []string{voice},
+	}
+	c, _, err := websocket.DefaultDialer.Dial(llm.wssUrl.String(), header)
+	if err != nil {
+		return nil, fmt.Errorf("dial err: %v", err)
+	}
+	defer c.Close()
+
+	err = c.WriteMessage(websocket.BinaryMessage, input)
+	if err != nil {
+		return nil, fmt.Errorf("write message fail: %v", err)
+	}
+
+	var audio []byte
+	for {
+		_, message, err := c.ReadMessage()
+		if err != nil {
+			return nil, fmt.Errorf("read message fail: %v", err)
+		}
+
+		var resp RelayTTSResponse
+		err = json.Unmarshal(message, &resp)
+		if err != nil {
+			fmt.Println("unmarshal fail, err:", err.Error())
+			continue
+		}
+
+		d, err := base64.StdEncoding.DecodeString(resp.Data)
+		if err != nil {
+			fmt.Println("decode fail, err:", err.Error())
+			continue
+		}
+
+		audio = append(audio, d...)
+
+		// 根据响应判断是否结束（假设Sequence < 0表示结束）
+		if resp.Sequence < 0 {
+			break
+		}
+	}
+
+	return audio, nil
 }

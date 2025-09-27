@@ -12,5 +12,5 @@ DB:
   DataSource: root:123456@tcp(127.0.0.1:3306)/ai_chat?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
 
 LLM:
-  BaseUrl: xxx # ai 接口 base url
+  BaseUrl: https://openai.qiniu.com # 七牛云 base url
   ApiKey: xxx
