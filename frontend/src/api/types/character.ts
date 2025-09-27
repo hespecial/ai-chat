@@ -6,6 +6,7 @@ export interface Character {
   tags?: string
   language?: string // e.g., 'zh-CN' | 'en-US'
   greeting?: string
+  skills?: Skill[]
 }
 
 export interface GetCharactersResponse {
@@ -13,3 +14,14 @@ export interface GetCharactersResponse {
 }
 
 export interface GetCharacterByIdResponse extends Character {}
+
+export interface Skill{
+  id: number
+  name: string
+  description: string
+  sufPath: string
+}
+
+export interface GetCharacterSkillsResponse {
+  skills: Skill[]
+}

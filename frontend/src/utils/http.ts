@@ -18,7 +18,7 @@ class HttpClient {
   constructor(baseURL: string) {
     this.instance = axios.create({
       baseURL,
-      timeout: 10000, // 请求超时时间
+      timeout: 300000, // 请求超时时间
       headers: {
         'Content-Type': 'application/json',
       },

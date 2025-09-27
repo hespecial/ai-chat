@@ -22,10 +22,12 @@
             <div class="text-xs text-slate-500">{{ character?.subtitle }}</div>
           </div>
           <div class="ml-auto flex items-center gap-3 text-xs text-slate-500">
-            <!--            <span class="hidden sm:inline">语音识别：</span>-->
-            <!--            <span :class="recognizing ? 'text-brand-600' : ''">{{-->
-            <!--              recognizing ? '进行中' : '未开启'-->
-            <!--            }}</span>-->
+            <button
+              class="inline-flex h-10 items-center rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700"
+              @click="toggleSkillsPopover"
+            >
+              角色技能
+            </button>
             <button
               @click="enableVoice"
               :class="[
@@ -107,11 +109,18 @@
         </form>
       </div>
     </section>
+    <SkillsPopover
+      :skills="character?.skills || []"
+      :visible="skillsPopoverVisible"
+      @close="skillsPopoverVisible = false"
+      @select-skill="onSelectSkill"
+    />
   </Layout>
 </template>
 
 <script setup lang="ts">
 import Layout from '@/components/Layout/Layout.vue'
+import SkillsPopover from '@/components/SkillsPopover.vue'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import * as types from '@/api/types'
@@ -125,9 +134,58 @@ const input = ref('')
 const loading = ref(false)
 const initials = ref('')
 const hasVoice = ref(true)
+const skillsPopoverVisible = ref(false)
 const stopButtonVisibility = ref(false)
 // 音频对象引用
 let currentAudio: HTMLAudioElement | null = null
+
+async function onSelectSkill(skill: types.Skill) {
+  skillsPopoverVisible.value = false
+  messages.value.push({
+    id: 0,
+    role: 'user',
+    content: skill.name,
+    created: Math.floor(Date.now() / 1000),
+  })
+
+  loading.value = true
+  const reply = await api.useSkill(skill.sufPath, { characterId: id, skillId: skill.id })
+  if (hasVoice.value) {
+    try {
+      const audioData = await api.getVoiceWave(reply.id)
+
+      // 停止当前正在播放的音频
+      if (currentAudio) {
+        stopAudioPlay()
+      }
+
+      // 创建Blob对象并播放
+      const blob = new Blob([audioData], { type: 'audio/mpeg' })
+      const audioUrl = URL.createObjectURL(blob)
+
+      currentAudio = new Audio(audioUrl)
+      await currentAudio.play()
+
+      // 音频播放结束后清理资源
+      currentAudio.onended = () => {
+        stopButtonVisibility.value = false
+        cleanupAudio()
+      }
+    } catch (error) {
+      console.error('播放音频失败:', error)
+    }
+  }
+
+  messages.value.push({
+    id: reply.id,
+    role: 'assistant',
+    content: reply.content,
+    created: Math.floor(Date.now() / 1000),
+  })
+
+  loading.value = false
+  stopButtonVisibility.value = true
+}
 
 // speech
 declare global {
@@ -161,6 +219,10 @@ function toggleVoice() {
   if (!recognition) return
   if (recognizing.value) recognition.stop()
   else recognition.start()
+}
+
+function toggleSkillsPopover() {
+  skillsPopoverVisible.value = !skillsPopoverVisible.value
 }
 
 function enableVoice() {
@@ -287,6 +349,8 @@ watch(
 
 onMounted(async () => {
   character.value = await api.getCharacterById(id)
+  const r = await api.getCharacterSkills(id)
+  character.value.skills = r.skills
   messages.value.push({
     id: 0,
     role: 'assistant',

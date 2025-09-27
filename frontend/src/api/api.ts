@@ -8,4 +8,6 @@ export default {
   getChatHistory: (id: number): Promise<types.GetChatHistoryResponse> => http.get(`/v1/chat/${id}`),
   truncateChat: (id: number): Promise<object> => http.delete(`/v1/chat/${id}`),
   getVoiceWave: (id: number): Promise<ArrayBuffer> => http.getBinary(`/v1/chat/voice?chatHistoryId=${id}`),
+  getCharacterSkills: (id: number): Promise<types.GetCharacterSkillsResponse> => http.get(`/v1/character/${id}/skill`),
+  useSkill: (sufPath: string,params: types.SkillReq): Promise<types.SkillResponse> => http.post(`/v1/skill/${sufPath}`,params)
 }
