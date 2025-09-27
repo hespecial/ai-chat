@@ -64,7 +64,7 @@ func (l *CreateChatLogic) CreateChat(req *types.CreateChatReq) (resp *types.Crea
 	content := response.Choices[0].Message.Content
 
 	// 保存此轮对话记录
-	historyId, err := l.saveRoundChat(character, req.Content, content)
+	historyId, err := l.SaveRoundChat(character, req.Content, content)
 	if err != nil {
 		return nil, errors.Wrapf(internalError, "save round chat error: %v", err)
 	}
@@ -76,7 +76,7 @@ func (l *CreateChatLogic) CreateChat(req *types.CreateChatReq) (resp *types.Crea
 	return
 }
 
-func (l *CreateChatLogic) saveRoundChat(character *model.Characters, userContent, assistantContent string) (int64, error) {
+func (l *CreateChatLogic) SaveRoundChat(character *model.Characters, userContent, assistantContent string) (int64, error) {
 	now := time.Now().Unix()
 	assistantChatHistory := model.ChatHistory{
 		CharacterId: character.Id,

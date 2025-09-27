@@ -11,4 +11,12 @@ type Config struct {
 		BaseUrl string
 		ApiKey  string
 	}
+	WeatherApi struct {
+		Url  string
+		Key  string
+		City string
+	}
+	HotNewsApi struct {
+		Url string
+	}
 }

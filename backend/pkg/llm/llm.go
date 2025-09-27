@@ -15,7 +15,7 @@ import (
 const (
 	roleUser  = "user"
 	chatApi   = "/v1/chat/completions"
-	chatModel = "deepseek-v3"
+	chatModel = "doubao-seed-1.6-thinking"
 	//voiceApi   = "/v1/audio/speech"
 	//voiceModel = "fnlp/MOSS-TTSD-v0.5"
 

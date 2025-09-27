@@ -28,6 +28,36 @@ type (
 	GetCharacterByIdResp {
 		Character
 	}
+	Skill {
+		id          int64  `json:"id"`
+		name        string `json:"name"`
+		description string `json:"description"`
+		sufPath     string `json:"sufPath"`
+	}
+	CharacterSkillsReq {
+		characterId int64 `path:"id"`
+	}
+	CharacterSkillsResp {
+		skills []*Skill `json:"skills"`
+	}
+)
+
+@server (
+	group:  characters
+	prefix: api/v1
+)
+service AiChat {
+	@handler GetCharacters
+	get /characters (GetCharactersReq) returns (GetCharactersResp)
+
+	@handler GetCharacterById
+	get /character/:id (GetCharacterByIdReq) returns (GetCharacterByIdResp)
+
+	@handler CharacterSkills
+	get /character/:id/skill (CharacterSkillsReq) returns (CharacterSkillsResp)
+}
+
+type (
 	CreateChatReq {
 		characterId int64  `json:"characterId"`
 		content     string `json:"content"`
@@ -58,18 +88,6 @@ type (
 )
 
 @server (
-	group:  characters
-	prefix: api/v1
-)
-service AiChat {
-	@handler GetCharacters
-	get /characters (GetCharactersReq) returns (GetCharactersResp)
-
-	@handler GetCharacterById
-	get /character/:id (GetCharacterByIdReq) returns (GetCharacterByIdResp)
-}
-
-@server (
 	group:  chat
 	prefix: api/v1
 )
@@ -85,6 +103,32 @@ service AiChat {
 
 	@handler GetVoiceWave
 	get /chat/voice (GetVoiceWaveReq)
+}
+
+type (
+	SkillReq {
+		characterId int64 `json:"characterId"`
+		skillId     int64 `json:"skillId"`
+	}
+	SkillResp {
+		id      int64  `json:"id"`
+		content string `json:"content"`
+	}
+)
+
+@server (
+	group:  skill
+	prefix: api/v1/skill
+)
+service AiChat {
+	@handler GuanXing
+	post /guanxing (SkillReq) returns (SkillResp)
+
+	@handler BaGua
+	post /bagua (SkillReq) returns (SkillResp)
+
+	@handler TuiYan
+	post /tuiyan (SkillReq) returns (SkillResp)
 }
 
 // backend/

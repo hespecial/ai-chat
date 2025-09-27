@@ -20,17 +20,32 @@ const template = `你的任务是假扮指定人物与用户进行第一人称�
 <用户消息>
 %s
 </用户消息>
+此外，用户的提问可能会触发角色技能，如果触发了技能，你需要根据技能描述去转述；若未触发技能则忽略技能相关信息
+角色技能以json格式呈现，有两个字段：
+1. 'name' 代表该技能的名称
+2. 'description' 代表该技能的描述
+注意：
+1. 触发技能所需要的数据一般拼接在用户消息中，是json格式数据，你需要对其分析
+2. 如果触发技能为空，则说明没有触发技能，那么你只需专注于用户消息即可
+3. 触发技能时，将信息以文字呈现给用户
+<触发技能>
+%s
+</触发技能>
 ！！！
 在回复时，请务必要遵循以下指南：
 1. 回复内容要紧密贴合给定的人物形象，包括说话风格、语气、用词等。
 2. 确保回复与用户的消息相关，不要偏离话题。
 3. 尽量使回复丰富、全面，以更好地展现人物特点，但是不要脱离人物所处的时代背景。
 4. 如果是历史人物或者某些知名角色，可以根据需要对其形象进一步补全或修正后再回复用户。
-5. 不要在括号中出现动作、神态之类的描写，只需要输出人物的语言。
+5. 一定不要在括号中出现动作、神态之类的描写，只需要输出人物说出的语言即可。
 ！！！
-好了，你可以开始和用户对话了，对话内容不要用标签包裹。
+好了，你可以开始和用户对话了。
 `
 
-func Combine(prompt, historyMsg, userMsg string) string {
-	return fmt.Sprintf(template, prompt, historyMsg, userMsg)
+func Combine(prompt, historyMsg, userMsg string, characterSkill ...string) string {
+	var skill string
+	if len(characterSkill) > 0 {
+		skill = characterSkill[0]
+	}
+	return fmt.Sprintf(template, prompt, historyMsg, userMsg, skill)
 }

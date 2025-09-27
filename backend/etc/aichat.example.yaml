@@ -2,7 +2,7 @@ Name: AiChat
 Host: 0.0.0.0
 Port: 8080
 
-Timeout: 30000 # http 超时时间，llm 容易超时，尽量设置大一些
+Timeout: 300000 # http 超时时间，llm 容易超时，尽量设置大一些
 
 Log:
   Level: error
@@ -12,5 +12,13 @@ DB:
   DataSource: root:123456@tcp(127.0.0.1:3306)/ai_chat?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
 
 LLM:
-  BaseUrl: https://openai.qiniu.com # 七牛云 base url
+  BaseUrl: https://openai.qiniu.com
   ApiKey: xxx
+
+WeatherApi:
+  Url: https://restapi.amap.com/v3/weather/weatherInfo
+  Key: xxx
+  city: "110101"
+
+HotNewsApi:
+  Url: https://v2.xxapi.cn/api/baiduhot

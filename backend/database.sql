@@ -94,7 +94,36 @@ INSERT INTO `ai_chat`.`voice` (type, description) VALUES
 ('qiniu_zh_female_yyqmpq', '英语启蒙佩奇'),
 ('qiniu_zh_male_tcsnsf', '天才少年示范');
 
+drop table if exists `ai_chat`.`skill`;
+create table if not exists `ai_chat`.`skill`(
+    id int primary key auto_increment,
+    name varchar(100) not null default '' comment '技能名称',
+    description varchar(100) not null default '' comment '技能描述',
+    suf_path varchar(30) not null default '' comment '前端请求路径尾缀'
+);
+
+insert into `ai_chat`.`skill`(name, description,suf_path) values
+('观星','查看北京实时天气情况','guanxing'),
+('推演','推演用户上次交谈的人','tuiyan'),
+('八卦','查看百度热点新闻','bagua');
+
+drop table if exists `ai_chat`.`assoc_character_skill`;
+create table if not exists `ai_chat`.`assoc_character_skill`(
+    id int primary key  auto_increment,
+    character_id int not null comment '角色id',
+    skill_id int not null comment '技能id',
+
+    unique u_cs(character_id,skill_id)
+);
+
+insert into `ai_chat`.`assoc_character_skill`(character_id, skill_id) values
+(2,1),
+(2,2),
+(2,3);
+
 -- backend/internal/model
 -- goctl model mysql datasource --dir . --table characters --url "root:123456@tcp(127.0.0.1:3306)/ai_chat"
 -- goctl model mysql datasource --dir . --table chat_history --url "root:123456@tcp(127.0.0.1:3306)/ai_chat"
 -- goctl model mysql datasource --dir . --table voice --url "root:123456@tcp(127.0.0.1:3306)/ai_chat"
+-- goctl model mysql datasource --dir . --table skill --url "root:123456@tcp(127.0.0.1:3306)/ai_chat"
+-- goctl model mysql datasource --dir . --table assoc_character_skill --url "root:123456@tcp(127.0.0.1:3306)/ai_chat"

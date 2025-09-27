@@ -2,6 +2,8 @@ package model
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
@@ -17,6 +19,7 @@ type (
 		SaveRoundChat(ctx context.Context, userRecord, assistantRecord *ChatHistory) (int64, error)
 		List(ctx context.Context, characterId int64) ([]*ChatHistory, error)
 		TruncateChat(ctx context.Context, characterId int64) error
+		LastHistory(ctx context.Context, characterId int64) (*ChatHistory, error)
 	}
 
 	customChatHistoryModel struct {
@@ -68,4 +71,17 @@ func (m *customChatHistoryModel) TruncateChat(ctx context.Context, characterId i
 	query := fmt.Sprintf("delete from %s where `character_id` = ?", m.table)
 	_, err := m.conn.ExecCtx(ctx, query, characterId)
 	return err
+}
+
+func (m *customChatHistoryModel) LastHistory(ctx context.Context, characterId int64) (*ChatHistory, error) {
+	query := fmt.Sprintf("select %s from %s where `character_id` != ? and role = ? order by `created` desc limit 1", chatHistoryRows, m.table)
+	var chatHistory ChatHistory
+	err := m.conn.QueryRowCtx(ctx, &chatHistory, query, characterId, RoleAssistant)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &chatHistory, nil
 }
