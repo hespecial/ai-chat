@@ -49,8 +49,7 @@
       <div
         class="container mx-auto px-4 py-8 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3"
       >
-        <p>© {{ year }} 角色语聊 AI · 前端演示版</p>
-        <p class="opacity-80">后端接口预留：/api/characters · /api/chat</p>
+        <p>© {{ year }} 角色语聊 AI · demo 演示版</p>
       </div>
     </footer>
   </div>
