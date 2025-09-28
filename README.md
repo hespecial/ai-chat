@@ -8,7 +8,7 @@ Ai Chat是一个角色扮演网站，预设了数十种不同角色，如孙悟�
 
 **Bilibili 视频链接**：[demo演示](https://www.bilibili.com/video/BV11NnRzcEBF?vd_source=02de4121378a33e0766deb99b12ef2b5)
 
-<video src="doc/perview/demo.mov" controls></video>
+<video src="doc/perview/demo.mp4" controls></video>
 
 ## 图片预览
 
